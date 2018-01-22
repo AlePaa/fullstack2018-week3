@@ -1,0 +1,21 @@
+{
+  "name": "fullstack2018-week3",
+  "version": "0.1.0",
+  "private": true,
+  "dependencies": {
+    "express": "^4.16.2",
+    "react": "^16.2.0",
+    "react-dom": "^16.2.0",
+    "react-scripts": "1.1.0"
+  },
+  "scripts": {
+    "start": "node index.js",
+    "watch": "node_modules/.bin/nodemon index.js",
+    "build": "react-scripts build",
+    "test": "react-scripts test --env=jsdom",
+    "eject": "react-scripts eject"
+  },
+  "devDependencies": {
+    "nodemon": "^1.14.11"
+  }
+}
