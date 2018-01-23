@@ -4,6 +4,8 @@ const bodyParser = require('body-parser')
 const morgan = require('morgan')
 const cors = require('cors')
 
+const Person = require('./models/person')
+
 let persons = require('./db')
 
 app.use(express.static('personsbackend/public'))
@@ -28,24 +30,53 @@ app.use(morgan(function (tokens, req, res) {
 }))
 
 app.get('/api/persons', (req, res) => {
-  res.json(persons)
+  Person
+    .find({})
+    .then(persons =>
+      persons.map(Person.format)
+    )
+    .then(formattedPersons =>
+      res.json(formattedPersons)
+    )
+    .catch(error => {
+      console.log(error)
+      res.status(404).end()
+    })
 })
 
 app.get('/info', (req, res) => {
-  const date = Date()
-  const count = persons.length
-  res.send('<p>puhelinluettelossa '+count+' henkilön tiedot</p>' +
-    '<p>'+date+'</p>')
+  Person
+    .count({})
+    .then(count => {
+    const date = Date()
+    res.send('<p>puhelinluettelossa '+count+' henkilön tiedot</p>' +
+      '<p>'+date+'</p>')
+    })
+    .catch(error => {
+      console.log(error)
+      res.status(404).end()
+    })
 })
 
 app.get('/api/persons/:id', (req, res) => {
-  const id = Number(req.params.id)
-  const person = persons.find(person => person.id === id)
-  if ( person ) {
-    res.json(person)
-  } else {
-    res.status(404).end()
-  }
+  console.log(req.params.id)
+  Person
+    .findById(req.params.id)
+    .then(person => {
+      if (person) {
+        Person.format(person)
+      } else {
+        res.status(404).end()
+      }
+    })
+    .then(formattedPerson =>
+      res.json(formattedPerson)
+    )
+    .catch(error => {
+      console.log(error)
+      res.status(400).send({ error: 'malformed id' })
+
+    })
 })
 
 const generateId = () => {
@@ -56,44 +87,53 @@ const generateId = () => {
 
 app.post('/api/persons', (req, res) => {
   const body = req.body
-  if (body.name === undefined || body.number === undefined) {
-    return res.status(400).json({error: 'name or number missing'})
-  }
-  if (persons.find(p => p.name === body.name)) {
-    return res.status(400).json({error: 'name already has a number'})
-  }
-
-  const person = {
+  const person = new Person({
     name: body.name,
-    number: body.number,
-    id: generateId()
-  }
-  persons = persons.concat(person)
-  res.json(person)
+    number: body.number
+  })
+
+  Person
+    .find({name: person.name})
+    .then(result => {
+      if (result.length > 0) {
+        res.status(400).send({ error: 'error: name already exists' })
+      } else {
+        person
+          .save()
+          .then(Person.format)
+          .then(savedFormattedPerson =>
+            res.json(savedFormattedPerson)
+          )
+          .catch(error => {
+            console.log(error)
+            res.status(404).end()
+          })
+      }
+    })
 })
 
 app.put('/api/persons/:id', (req, res) => {
-  const body = req.body
-  if (body.name === undefined || body.number === undefined ||
-     body.id === undefined) {
-    return res.status(400).json({error: 'incomplete data'})
-  }
-  const person = {
-    name: body.name,
-    number: body.number,
-    id: body.id
-  }
-  persons = persons.map(p =>
-    (p.name === body.name) ? persons : p
-  )
-  res.status(200).end()
+  Person.findOneAndUpdate({_id:req.params.id}, req.body)
+    .then(Person.format)
+    .then( formattedPerson =>
+      res.json(formattedPerson)
+    )
+    .catch(error => {
+      console.log(error)
+      res.status(400).send({ error: 'malformed id' })
+    })
 })
 
 app.delete('/api/persons/:id', (req, res) => {
-  const id = Number(req.params.id)
-  persons = persons.filter(person => person.id !== id)
-
-  res.status(204).end()
+  const id = req.params.id
+  Person
+    .remove({ _id: req.params.id })
+    .then(() =>
+      res.status(204).end()
+    )
+    .catch(error => {
+      res.status(400).send({ error: 'malformed id' })
+    })
 })
 
 const PORT = process.env.PORT || 3001
