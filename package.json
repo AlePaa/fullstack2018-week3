@@ -3,6 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "dependencies": {
+    "cors": "^2.8.4",
     "express": "^4.16.2",
     "morgan": "^1.9.0",
     "react": "^16.2.0",
