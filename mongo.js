@@ -2,7 +2,7 @@ const mongoose = require('mongoose')
 
 const url = 'mongodb://dev:salainen@ds213118.mlab.com:13118/fullstack2018'
 mongoose.connect(url)
-mongoose.Promise = global.Promise;
+mongoose.Promise = global.Promise
 
 const Person = mongoose.model('Person', {
   name: String,
@@ -13,8 +13,8 @@ if (process.argv[2] === undefined || process.argv[3] === undefined) {
   Person
     .find({})
     .then(persons => {
-      console.log("puhelinluettelo:")
-      persons.map(person => console.log(person.name+" "+person.number))
+      console.log('puhelinluettelo:')
+      persons.map(person => console.log(person.name+' '+person.number))
       mongoose.connection.close()
     })
 }
@@ -30,9 +30,7 @@ else {
 
   person
     .save()
-    .then(result => {
-      mongoose.connection.close()
-    })
+    .then(mongoose.connection.close())
     .catch(err =>
       console.log(err)
     )
