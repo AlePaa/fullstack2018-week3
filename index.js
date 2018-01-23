@@ -3,10 +3,7 @@ const app = express()
 const bodyParser = require('body-parser')
 const morgan = require('morgan')
 const cors = require('cors')
-
 const Person = require('./models/person')
-
-let persons = require('./db')
 
 app.use(express.static('personsbackend/public'))
 
