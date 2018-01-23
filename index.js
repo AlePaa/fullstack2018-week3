@@ -4,6 +4,10 @@ const bodyParser = require('body-parser')
 const morgan = require('morgan')
 const cors = require('cors')
 
+let persons = require('./db')
+
+app.use(express.static('personsbackend/public'))
+
 app.use(bodyParser.json())
 
 app.use(cors())
@@ -22,12 +26,6 @@ app.use(morgan(function (tokens, req, res) {
     tokens['response-time'](req, res), 'ms'
   ].join(' ')
 }))
-
-let persons = require('./db')
-
-app.get('/', (req, res) => {
-  res.send('<h1>Hello World!</h1>')
-})
 
 app.get('/api/persons', (req, res) => {
   res.json(persons)
@@ -58,7 +56,6 @@ const generateId = () => {
 
 app.post('/api/persons', (req, res) => {
   const body = req.body
-
   if (body.name === undefined || body.number === undefined) {
     return res.status(400).json({error: 'name or number missing'})
   }
@@ -71,10 +68,25 @@ app.post('/api/persons', (req, res) => {
     number: body.number,
     id: generateId()
   }
-
   persons = persons.concat(person)
+  res.json(person)
+})
 
-  res.json(persons)
+app.put('/api/persons/:id', (req, res) => {
+  const body = req.body
+  if (body.name === undefined || body.number === undefined ||
+     body.id === undefined) {
+    return res.status(400).json({error: 'incomplete data'})
+  }
+  const person = {
+    name: body.name,
+    number: body.number,
+    id: body.id
+  }
+  persons = persons.map(p =>
+    (p.name === body.name) ? persons : p
+  )
+  res.status(200).end()
 })
 
 app.delete('/api/persons/:id', (req, res) => {
